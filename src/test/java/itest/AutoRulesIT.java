@@ -105,7 +105,9 @@ class AutoRulesIT extends ExternalTargetsTest {
         CompletableFuture<JsonObject> postResponse = new CompletableFuture<>();
         MultiMap form = MultiMap.caseInsensitiveMultiMap();
         form.add("name", "Auto Rule");
-        form.add("targetAlias", "es.andrewazor.demo.Main");
+        form.add(
+                "matchExpression",
+                "target.annotations.cryostat.JAVA_MAIN=='es.andrewazor.demo.Main'");
         form.add("description", "AutoRulesIT automated rule");
         form.add("eventSpecifier", "template=Continuous,type=TARGET");
         form.add("archivalPeriodSeconds", "60");
@@ -155,8 +157,8 @@ class AutoRulesIT extends ExternalTargetsTest {
                                 "AutoRulesIT automated rule",
                                 "eventSpecifier",
                                 "template=Continuous,type=TARGET",
-                                "targetAlias",
-                                "es.andrewazor.demo.Main",
+                                "matchExpression",
+                                "target.annotations.cryostat.JAVA_MAIN=='es.andrewazor.demo.Main'",
                                 "archivalPeriodSeconds",
                                 60,
                                 "preservedArchives",
