@@ -200,7 +200,7 @@ class AutoRulesIT extends ExternalTargetsTest {
         invalidRule.put("name", "Invalid_Rule");
         invalidRule.put("description", "AutoRulesIT automated rule");
         invalidRule.put("eventSpecifier", "template=Continuous,type=TARGET");
-        invalidRule.put("targetAlias", "es.andrewazor.demo.Main");
+        invalidRule.put("matchExpression", "target.annotations.cryostat.JAVA_MAIN=='es.andrewazor.demo.Main'");
         invalidRule.put("archivalPeriodSeconds", -60);
         invalidRule.put("preservedArchives", -3);
 
