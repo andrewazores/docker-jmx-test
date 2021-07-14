@@ -35,46 +35,72 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package itest.util;
+package io.cryostat.platform.discovery;
 
-import io.vertx.core.Vertx;
-import io.vertx.core.file.FileSystem;
-import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpClientOptions;
-import io.vertx.ext.web.client.WebClient;
+import java.util.Collections;
+import java.util.Map;
 
-public class Utils {
+import com.google.gson.annotations.SerializedName;
 
-    public static final int WEB_PORT;
-    public static final String WEB_HOST;
+public abstract class AbstractNode implements Comparable<AbstractNode> {
 
-    static {
-        WEB_PORT = Integer.valueOf(System.getProperty("cryostatWebPort"));
-        WEB_HOST = System.getProperty("cryostatWebHost", "localhost");
+    protected final String name;
+
+    @SerializedName("kind")
+    protected final NodeType nodeType;
+
+    protected final Map<String, String> labels;
+
+    protected AbstractNode(String name, NodeType nodeType, Map<String, String> labels) {
+        this.name = name;
+        this.nodeType = nodeType;
+        this.labels = labels;
     }
 
-    public static final HttpClientOptions HTTP_CLIENT_OPTIONS;
-
-    static {
-        HTTP_CLIENT_OPTIONS =
-                new HttpClientOptions()
-                        .setSsl(false)
-                        .setTrustAll(true)
-                        .setVerifyHost(false)
-                        .setDefaultHost(WEB_HOST)
-                        .setDefaultPort(WEB_PORT)
-                        .setLogActivity(true);
+    public String getName() {
+        return name;
     }
 
-    private static final Vertx VERTX = Vertx.vertx();
-    public static final HttpClient HTTP_CLIENT = VERTX.createHttpClient(HTTP_CLIENT_OPTIONS);
-    private static final WebClient WEB_CLIENT_INSTANCE = WebClient.wrap(HTTP_CLIENT);
-
-    public static WebClient getWebClient() {
-        return WEB_CLIENT_INSTANCE;
+    public NodeType getNodeType() {
+        return this.nodeType;
     }
 
-    public static FileSystem getFileSystem() {
-        return VERTX.fileSystem();
+    public Map<String, String> getLabels() {
+        return Collections.unmodifiableMap(labels);
+    }
+
+    @Override
+    public int compareTo(AbstractNode other) {
+        int type = nodeType.ordinal() - other.nodeType.ordinal();
+        if (type != 0) {
+            return type;
+        }
+        return name.compareTo(other.name);
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((labels == null) ? 0 : labels.hashCode());
+        result = prime * result + ((name == null) ? 0 : name.hashCode());
+        result = prime * result + ((nodeType == null) ? 0 : nodeType.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
+        AbstractNode other = (AbstractNode) obj;
+        if (labels == null) {
+            if (other.labels != null) return false;
+        } else if (!labels.equals(other.labels)) return false;
+        if (name == null) {
+            if (other.name != null) return false;
+        } else if (!name.equals(other.name)) return false;
+        if (nodeType != other.nodeType) return false;
+        return true;
     }
 }

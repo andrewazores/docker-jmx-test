@@ -49,6 +49,11 @@ import io.cryostat.core.log.Logger;
 import io.cryostat.core.net.JFRConnectionToolkit;
 import io.cryostat.core.sys.Environment;
 import io.cryostat.platform.ServiceRef;
+import io.cryostat.platform.discovery.BaseNodeType;
+import io.cryostat.platform.discovery.EnvironmentNode;
+import io.cryostat.platform.discovery.NodeType;
+import io.cryostat.platform.discovery.TargetNode;
+import io.cryostat.platform.internal.DefaultPlatformClient.JDPNodeType;
 import io.cryostat.util.URIUtil;
 
 import dagger.Lazy;
@@ -79,6 +84,17 @@ class KubeEnvPlatformClient extends AbstractPlatformClient {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public EnvironmentNode getDiscoveryTree() {
+        EnvironmentNode root = new EnvironmentNode("KubernetesEnv", BaseNodeType.REALM);
+        List<ServiceRef> targets = listDiscoverableServices();
+        for (ServiceRef target : targets) {
+            TargetNode targetNode = new TargetNode(new JDPNodeType(), target);
+            root.addChildNode(targetNode);
+        }
+        return root;
+    }
+
     private ServiceRef envToServiceRef(Map.Entry<String, String> entry) {
         Matcher matcher = SERVICE_ENV_PATTERN.matcher(entry.getKey());
         if (!matcher.matches()) {
@@ -94,6 +110,21 @@ class KubeEnvPlatformClient extends AbstractPlatformClient {
         } catch (Exception e) {
             logger.warn(e);
             return null;
+        }
+    }
+
+    public static class KubernetesNodeType implements NodeType {
+
+        public static final String KIND = "KubernetesEnv";
+
+        @Override
+        public String getKind() {
+            return KIND;
+        }
+
+        @Override
+        public int ordinal() {
+            return 0;
         }
     }
 }
