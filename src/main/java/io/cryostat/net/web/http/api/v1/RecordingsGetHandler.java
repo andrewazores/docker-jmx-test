@@ -39,7 +39,6 @@ package io.cryostat.net.web.http.api.v1;
 
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -50,8 +49,10 @@ import io.cryostat.net.web.http.AbstractAuthenticatedRequestHandler;
 import io.cryostat.net.web.http.api.ApiVersion;
 import io.cryostat.recordings.RecordingArchiveHelper;
 import io.cryostat.rules.ArchivePathException;
+import io.cryostat.rules.ArchivedRecordingInfo;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.impl.HttpStatusException;
@@ -59,18 +60,15 @@ import io.vertx.ext.web.handler.impl.HttpStatusException;
 class RecordingsGetHandler extends AbstractAuthenticatedRequestHandler {
 
     private final Path savedRecordingsPath;
-    private final Gson gson;
     private final RecordingArchiveHelper recordingArchiveHelper;
 
     @Inject
     RecordingsGetHandler(
             AuthManager auth,
             @Named(MainModule.RECORDINGS_PATH) Path savedRecordingsPath,
-            Gson gson,
             RecordingArchiveHelper recordingArchiveHelper) {
         super(auth);
         this.savedRecordingsPath = savedRecordingsPath;
-        this.gson = gson;
         this.recordingArchiveHelper = recordingArchiveHelper;
     }
 
@@ -97,10 +95,13 @@ class RecordingsGetHandler extends AbstractAuthenticatedRequestHandler {
     @Override
     public void handleAuthenticated(RoutingContext ctx) throws Exception {
         try {
-            List<Map<String, String>> result = recordingArchiveHelper.getRecordings();
-            for (Map<String, String> map : result) {
-                map.remove("serviceUriHash");
-            }
+            List<ArchivedRecordingInfo> result = recordingArchiveHelper.getRecordings();
+            Gson gson =
+                    new GsonBuilder()
+                            .registerTypeAdapter(
+                                    ArchivedRecordingInfo.class,
+                                    new ArchivedRecordingInfo.ArchivedRecordingInfoSerializer())
+                            .create();
             ctx.response().end(gson.toJson(result));
         } catch (ArchivePathException e) {
             switch (e.getMessage()) {
