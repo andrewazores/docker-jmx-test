@@ -47,6 +47,7 @@ import io.cryostat.core.log.Logger;
 import io.cryostat.core.sys.FileSystem;
 import io.cryostat.net.AuthManager;
 import io.cryostat.net.web.WebServer;
+import io.cryostat.recordings.RecordingArchiveHelper;
 
 import com.google.gson.Gson;
 import io.vertx.core.http.HttpMethod;
@@ -72,8 +73,7 @@ class RecordingsGetHandlerTest {
     RecordingsGetHandler handler;
     @Mock AuthManager auth;
     @Mock Path savedRecordingsPath;
-    @Mock FileSystem fs;
-    @Mock WebServer webServer;
+    @Mock RecordingArchiveHelper recordingArchiveHelper;
     @Mock Logger logger;
     Gson gson = MainModule.provideGson(logger);
 
@@ -81,7 +81,7 @@ class RecordingsGetHandlerTest {
     void setup() {
         this.handler =
                 new RecordingsGetHandler(
-                        auth, savedRecordingsPath, fs, () -> webServer, gson, logger);
+                        auth, savedRecordingsPath, recordingArchiveHelper);
     }
 
     @Test
